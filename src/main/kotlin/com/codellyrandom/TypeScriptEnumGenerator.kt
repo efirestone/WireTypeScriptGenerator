@@ -17,8 +17,7 @@ class TypeScriptEnumGenerator(
             |""".trimMargin().trimEnd()
     }
 
-    private val documentation: String
-        get() = if (type.documentation.isBlank()) "" else "// ${type.documentation}\n"
+    private val documentation: String = type.documentation.toDocumentation(0)
 
     private val inlineExport: String
         get() = if (type.type.isRootType) "" else "export "
@@ -41,8 +40,8 @@ class TypeScriptEnumGenerator(
         includeDocumentation: Boolean = true
     ): String {
         val stringBuilder = StringBuilder()
-        if (includeDocumentation && constant.documentation.isNotBlank()) {
-            stringBuilder.append("  // ${constant.documentation}\n")
+        if (includeDocumentation) {
+            stringBuilder.append(constant.documentation.toDocumentation(2))
         }
         stringBuilder.append("  ${constant.name} = \"${constant.name}\",")
 

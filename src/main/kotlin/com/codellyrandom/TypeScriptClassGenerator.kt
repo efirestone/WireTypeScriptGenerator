@@ -17,8 +17,7 @@ class TypeScriptClassGenerator(
             |""".trimMargin().trimEnd()
     }
 
-    private val documentation: String
-        get() = if (type.documentation.isBlank()) "" else "// ${type.documentation}\n"
+    private val documentation: String = type.documentation.toDocumentation(0)
 
     private val export: String
         get() = if (type.type.isRootType) "export default" else "export"
@@ -45,10 +44,8 @@ class TypeScriptClassGenerator(
         useShortcutOptional: Boolean
     ): String {
         val stringBuilder = StringBuilder()
-        if (includeDocumentation && field.documentation.isNotBlank()) {
-            stringBuilder.append("  // ")
-            stringBuilder.append(field.documentation)
-            stringBuilder.append("\n")
+        if (includeDocumentation) {
+            stringBuilder.append(field.documentation.toDocumentation(2))
         }
         stringBuilder.append("  ")
         stringBuilder.append(field.name)

@@ -68,7 +68,7 @@ class TypeScriptGeneratorTests {
                 if (!expectedBytes.contentEquals(actualBytes)) {
                     println("File ${it.toFile().name} does not match the expected value.")
                     println("Run the following to see the difference:")
-                    println("   diff \"${it.toAbsolutePath()}\" \"${expectedFile.toAbsolutePath()}\"")
+                    println("   diff -C10 \"${it.toAbsolutePath()}\" \"${expectedFile.toAbsolutePath()}\"")
                     fail("File ${it.toFile().name} does not match the expected value.")
                 }
             }

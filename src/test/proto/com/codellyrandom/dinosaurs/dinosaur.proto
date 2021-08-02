@@ -9,7 +9,11 @@ message Geolocation {
   required double longitude = 2;
 }
 
-/** A now-extinct lizard-like creature. */
+/**
+ * A now-extinct lizard-like creature.
+ * It's likely that they went extinct due to the impact of
+ * a large meteor on earth.
+ */
 message Dinosaur {
   enum DietType {
     UNKNOWN = 0;
@@ -26,7 +30,10 @@ message Dinosaur {
     repeated TimeSpan awake = 1;
   }
 
-  /** Common name of this dinosaur, like "Stegosaurus". */
+  /**
+   * Common name of this dinosaur
+   * For example, "Stegosaurus".
+   */
   optional string name = 1;
 
   /** URLs with images of this dinosaur. */

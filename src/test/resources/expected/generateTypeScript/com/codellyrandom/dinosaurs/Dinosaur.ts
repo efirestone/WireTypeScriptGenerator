@@ -1,8 +1,11 @@
 import Period from "../geology/Period"
 
 // A now-extinct lizard-like creature.
+// It's likely that they went extinct due to the impact of
+// a large meteor on earth.
 export default class Dinosaur {
-  // Common name of this dinosaur, like "Stegosaurus".
+  // Common name of this dinosaur
+  // For example, "Stegosaurus".
   name?: string = undefined
   // URLs with images of this dinosaur.
   picture_urls?: string[] = undefined
