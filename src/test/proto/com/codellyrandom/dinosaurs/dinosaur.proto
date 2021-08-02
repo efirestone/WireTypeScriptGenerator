@@ -1,0 +1,42 @@
+syntax = "proto2";
+
+package com.codellyrandom.dinosaurs;
+
+import "geology/period.proto";
+
+message Geolocation {
+  required double latitude = 1;
+  required double longitude = 2;
+}
+
+/** A now-extinct lizard-like creature. */
+message Dinosaur {
+  enum DietType {
+    UNKNOWN = 0;
+    VEGETARIAN = 1;
+    CARNIVORE = 2;
+    OMNIVORE = 3;
+  }
+
+  message SleepSchedule {
+    message TimeSpan {
+      required int32 start = 1;
+      required int32 end = 2;
+    }
+    repeated TimeSpan awake = 1;
+  }
+
+  /** Common name of this dinosaur, like "Stegosaurus". */
+  optional string name = 1;
+
+  /** URLs with images of this dinosaur. */
+  repeated string picture_urls = 2;
+
+  optional double length_meters = 3;
+  optional double mass_kilograms = 4;
+  optional com.codellyrandom.geology.Period period = 5;
+  optional Geolocation location = 6;
+  optional DietType diet_type = 7;
+
+  optional SleepSchedule sleep_schedule = 8;
+}
