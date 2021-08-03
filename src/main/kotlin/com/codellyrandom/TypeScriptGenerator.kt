@@ -80,7 +80,12 @@ class TypeScriptGenerator : CustomHandlerBeta {
         val typesInFile = type.typesAndNestedTypes().map { it.type }
         val typesOutsideFile = referencedTypes.subtract(typesInFile)
 
-        return typesOutsideFile.map {
+        val transformerImport = if (referencedTypes.isEmpty()) {
+            listOf()
+        } else {
+            listOf("import { Type } from \"class-transformer\"\n")
+        }
+        val typeImports = typesOutsideFile.map {
             // Convert package/directory structure to be relative to
             // the current package/directory.
             val relativePackage = it.packageComponents.foldIndexed(mutableListOf<String>()) { index, acc, component ->
@@ -99,6 +104,8 @@ class TypeScriptGenerator : CustomHandlerBeta {
             // For now this only supports importing the default export.
             "import ${it.simpleName} from \"$importPath/${it.simpleName}\""
         }
+
+        return transformerImport.plus(typeImports)
     }
 
     // Generate the TypeScript code for this type and nested types.

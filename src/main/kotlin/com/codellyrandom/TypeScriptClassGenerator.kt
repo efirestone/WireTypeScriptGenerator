@@ -44,8 +44,12 @@ class TypeScriptClassGenerator(
         useShortcutOptional: Boolean
     ): String {
         val stringBuilder = StringBuilder()
+        val type = field.type!!
         if (includeDocumentation) {
             stringBuilder.append(field.documentation.toDocumentation(2))
+        }
+        if (!type.isScalar) {
+            stringBuilder.append("  @Type(() => ${typeResolver.nameFor(type)})\n")
         }
         stringBuilder.append("  ")
         stringBuilder.append(field.name)
@@ -53,7 +57,7 @@ class TypeScriptClassGenerator(
             stringBuilder.append("?")
         }
         stringBuilder.append(": ")
-        stringBuilder.append(typeResolver.nameFor(field.type!!))
+        stringBuilder.append(typeResolver.nameFor(type))
         if (field.isRepeated) {
             stringBuilder.append("[]")
         }

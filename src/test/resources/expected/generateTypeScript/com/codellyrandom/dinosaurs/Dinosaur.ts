@@ -1,3 +1,5 @@
+import { Type } from "class-transformer"
+
 import Period from "../geology/Period"
 import Geolocation from "./Geolocation"
 
@@ -12,9 +14,13 @@ export default class Dinosaur {
   picture_urls?: string[] = undefined
   length_meters?: number = undefined
   mass_kilograms?: number = undefined
+  @Type(() => Period)
   period?: Period = undefined
+  @Type(() => Geolocation)
   location?: Geolocation = undefined
+  @Type(() => Dinosaur_DietType)
   diet_type?: Dinosaur_DietType = undefined
+  @Type(() => Dinosaur_SleepSchedule)
   sleep_schedule?: Dinosaur_SleepSchedule = undefined
 }
 
@@ -26,6 +32,7 @@ export enum Dinosaur_DietType {
 }
 
 export class Dinosaur_SleepSchedule {
+  @Type(() => Dinosaur_SleepSchedule_TimeSpan)
   awake?: Dinosaur_SleepSchedule_TimeSpan[] = undefined
 }
 
