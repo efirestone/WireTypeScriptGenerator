@@ -1,4 +1,5 @@
 import Period from "../geology/Period"
+import Geolocation from "./Geolocation"
 
 // A now-extinct lizard-like creature.
 // It's likely that they went extinct due to the impact of

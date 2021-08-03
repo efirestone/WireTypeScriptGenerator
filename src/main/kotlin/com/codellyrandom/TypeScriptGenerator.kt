@@ -77,12 +77,8 @@ class TypeScriptGenerator : CustomHandlerBeta {
     private fun toTypeScriptImports(type: Type): List<String> {
         val packageComponents = type.type.packageComponents
         val referencedTypes = type.referencedTypesAndNestedReferencedTypes
-
-        // TypeScript automatically imports anything in the same directory,
-        // which given our generated directory structure, means anything in
-        // the same package.
-        val typesOutsideFile = referencedTypes
-            .filter { it.packageComponents != packageComponents }
+        val typesInFile = type.typesAndNestedTypes().map { it.type }
+        val typesOutsideFile = referencedTypes.subtract(typesInFile)
 
         return typesOutsideFile.map {
             // Convert package/directory structure to be relative to
@@ -95,7 +91,10 @@ class TypeScriptGenerator : CustomHandlerBeta {
             }
             //
             val commonComponentCount = it.packageComponents.size - relativePackage.size
-            val backingOutPath = (1 .. (packageComponents.size - commonComponentCount)).map { ".." }
+            var backingOutPath = (1 .. (packageComponents.size - commonComponentCount)).map { ".." }
+            if (backingOutPath.isEmpty()) {
+                backingOutPath = listOf(".")
+            }
             val importPath = backingOutPath.plus(relativePackage).joinToString("/")
             // For now this only supports importing the default export.
             "import ${it.simpleName} from \"$importPath/${it.simpleName}\""
