@@ -15,6 +15,9 @@ import java.nio.file.Path
  */
 @Suppress("unused")
 class TypeScriptGenerator : CustomHandlerBeta {
+    val typeResolver = TypeResolver()
+    val unresolvedTypeManager = UnresolvedTypeManager(typeResolver)
+
     override fun newHandler(
         schema: Schema,
         fs: FileSystem,
@@ -25,7 +28,7 @@ class TypeScriptGenerator : CustomHandlerBeta {
         return object : Target.SchemaHandler {
             override fun handle(type: Type): Path? {
                 val generated = LinkedHashMap<Type, String>()
-                toTypeScriptTypes(type, generated)
+                toTypeScriptTypes(type, typeResolver, generated)
 
                 val imports = toTypeScriptImports(type)
 
@@ -45,8 +48,25 @@ class TypeScriptGenerator : CustomHandlerBeta {
                 return null
             }
 
+            override fun handle(
+                protoFile: ProtoFile,
+                emittingRules: EmittingRules,
+                claimedDefinitions: ClaimedDefinitions,
+                claimedPaths: MutableMap<Path, String>,
+                isExclusive: Boolean
+            ) {
+                val typesInFile = protoFile.types.fold(setOf<Type>()) { acc, type ->
+                    acc.plus(elements = type.typesAndNestedTypes())
+                }
+                typesInFile.forEach { typeResolver.add(it) }
+                unresolvedTypeManager.resolve(typesInFile)
+
+                super.handle(protoFile, emittingRules, claimedDefinitions, claimedPaths, isExclusive)
+            }
+
             private fun writeFile(protoType: ProtoType, content: String): Path {
                 val path = fs.getPath(outDirectory, *toPath(protoType).toTypedArray())
+                unresolvedTypeManager.setPathForProtoType(path, protoType)
                 Files.createDirectories(path.parent)
                 path.sink().buffer().use { sink ->
                     sink.writeUtf8(content)
@@ -66,10 +86,10 @@ class TypeScriptGenerator : CustomHandlerBeta {
         return result
     }
 
-    private fun toTypeScript(type: Type): String {
+    private fun toTypeScript(type: Type, typeResolver: TypeResolver): String {
         return when (type) {
-            is EnumType -> TypeScriptEnumGenerator(type).generate()
-            is MessageType -> TypeScriptClassGenerator(type).generate()
+            is EnumType -> TypeScriptEnumGenerator(type, typeResolver).generate()
+            is MessageType -> TypeScriptClassGenerator(type, typeResolver, unresolvedTypeManager).generate()
             else -> throw IllegalStateException("Unknown proto type $type")
         }
     }
@@ -110,10 +130,10 @@ class TypeScriptGenerator : CustomHandlerBeta {
 
     // Generate the TypeScript code for this type and nested types.
     // Returns a LinkedHashMap so that it's ordered.
-    private fun toTypeScriptTypes(type: Type, generated: LinkedHashMap<Type, String>) {
-        generated[type] = toTypeScript(type)
+    private fun toTypeScriptTypes(type: Type, typeResolver: TypeResolver, generated: LinkedHashMap<Type, String>) {
+        generated[type] = toTypeScript(type, typeResolver)
         type.nestedTypes.forEach {
-            toTypeScriptTypes(it, generated)
+            toTypeScriptTypes(it, typeResolver, generated)
         }
     }
 }

@@ -1,10 +1,19 @@
 package com.codellyrandom
 
 import com.squareup.wire.schema.ProtoType
+import com.squareup.wire.schema.Type
 import java.lang.IllegalStateException
 
 // Converts protobuf types to TypeScript types
-class TypeResolver() {
+class TypeResolver(private val typesByProtoType: MutableMap<ProtoType, Type> = mutableMapOf()) {
+    fun add(type: Type) {
+        typesByProtoType[type.type] = type
+    }
+
+    // If this returns null the prototype may describe
+    // a valid type, but we haven't registered it yet.
+    fun typeFor(type: ProtoType): Type? = typesByProtoType[type]
+
     fun nameFor(type: ProtoType): String {
         if (type.isScalar) {
             return when (type.toString()) {

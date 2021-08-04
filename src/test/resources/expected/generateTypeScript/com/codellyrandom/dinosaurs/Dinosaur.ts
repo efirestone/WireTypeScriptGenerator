@@ -14,11 +14,9 @@ export default class Dinosaur {
   picture_urls?: string[] = undefined
   length_meters?: number = undefined
   mass_kilograms?: number = undefined
-  @Type(() => Period)
   period?: Period = undefined
   @Type(() => Geolocation)
   location?: Geolocation = undefined
-  @Type(() => Dinosaur_DietType)
   diet_type?: Dinosaur_DietType = undefined
   @Type(() => Dinosaur_SleepSchedule)
   sleep_schedule?: Dinosaur_SleepSchedule = undefined

@@ -1,5 +1,6 @@
 package com.codellyrandom
 
+import com.squareup.wire.schema.EnumType
 import com.squareup.wire.schema.Field
 import com.squareup.wire.schema.MessageType
 import com.squareup.wire.schema.Type
@@ -7,7 +8,8 @@ import java.lang.IllegalStateException
 
 class TypeScriptClassGenerator(
     private val type: Type,
-    private val typeResolver: TypeResolver = TypeResolver()
+    private val typeResolver: TypeResolver,
+    private val unresolvedTypeManager: UnresolvedTypeManager
 ) {
     fun generate(): String {
         return """
@@ -44,12 +46,23 @@ class TypeScriptClassGenerator(
         useShortcutOptional: Boolean
     ): String {
         val stringBuilder = StringBuilder()
-        val type = field.type!!
+        val fieldType = field.type!!
         if (includeDocumentation) {
             stringBuilder.append(field.documentation.toDocumentation(2))
         }
-        if (!type.isScalar) {
-            stringBuilder.append("  @Type(() => ${typeResolver.nameFor(type)})\n")
+        if (!fieldType.isScalar) {
+            val fullType = typeResolver.typeFor(fieldType)
+            stringBuilder.append(
+                when (fullType) {
+                    is EnumType -> ""
+                    is MessageType -> fieldType.fieldAssociation(typeResolver)
+                    null -> fieldType.fieldAssociationToken
+                    else -> throw IllegalStateException("Unknown field type.")
+                }
+            )
+            if (fullType == null) {
+                unresolvedTypeManager.addUnresolvedFieldProtoType(fieldType, type.type)
+            }
         }
         stringBuilder.append("  ")
         stringBuilder.append(field.name)
@@ -57,7 +70,7 @@ class TypeScriptClassGenerator(
             stringBuilder.append("?")
         }
         stringBuilder.append(": ")
-        stringBuilder.append(typeResolver.nameFor(type))
+        stringBuilder.append(typeResolver.nameFor(fieldType))
         if (field.isRepeated) {
             stringBuilder.append("[]")
         }
