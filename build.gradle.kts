@@ -1,8 +1,13 @@
-group = "com.codellyrandom"
-version = "0.1.0"
+val artifactGroup = "com.codellyrandom"
+val artifactVersion = "0.1.0"
+
+group = artifactGroup
+version = artifactVersion
 
 plugins {
     kotlin("jvm") version "1.5.21"
+    id("maven-publish")
+    id("java")
 }
 
 dependencies {
@@ -13,6 +18,23 @@ dependencies {
     testImplementation("io.outfoxx:swiftpoet:1.0.0")
 }
 
+publishing {
+    publications {
+        create<MavenPublication>("maven") {
+            groupId = artifactGroup
+            artifactId = "wire-typescript-generator"
+            version = artifactVersion
+
+            from(components["java"])
+        }
+    }
+}
+
 repositories {
     mavenCentral()
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
 }
