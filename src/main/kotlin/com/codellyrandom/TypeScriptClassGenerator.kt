@@ -27,7 +27,7 @@ class TypeScriptClassGenerator(
     private val fields: String
         get() {
             if (type is MessageType) {
-                return type.declaredFields.fold("") { acc, field ->
+                var content = (type.declaredFields + type.extensionFields).fold("") { acc, field ->
                     acc + toTypeScript(
                         field = field,
                         includeDocumentation = true,
@@ -35,6 +35,21 @@ class TypeScriptClassGenerator(
                         useShortcutOptional = true
                     ) +"\n"
                 }.trimEnd()
+
+                type.oneOfs.forEach { oneOf ->
+                    content += "\n\n  // ${oneOf.name}: At most one of these fields will be non-null\n"
+                    content += oneOf.documentation.toDocumentation(2)
+                    content = oneOf.fields.fold(content) { acc, field ->
+                        acc + toTypeScript(
+                            field = field,
+                            includeDocumentation = true,
+                            includeDefault = true,
+                            useShortcutOptional = true
+                        ) +"\n"
+                    }.trimEnd()
+                }
+
+                return content
             }
             throw IllegalStateException("Protobuf type $type cannot be converted to a TypeScript class")
         }
@@ -65,7 +80,7 @@ class TypeScriptClassGenerator(
             }
         }
         stringBuilder.append("  ")
-        stringBuilder.append(field.name)
+        stringBuilder.append(field.jsonName ?: field.name)
         if (useShortcutOptional && !field.isRequired) {
             stringBuilder.append("?")
         }

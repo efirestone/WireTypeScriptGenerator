@@ -20,6 +20,20 @@ export default class Dinosaur {
   diet_type?: Dinosaur_DietType = undefined
   @Type(() => Dinosaur_SleepSchedule)
   sleep_schedule?: Dinosaur_SleepSchedule = undefined
+
+  // primary_defense_mechanism: At most one of these fields will be non-null
+  @Type(() => Dinosaur_SharpTeeth)
+  sharp_tail?: Dinosaur_SharpTeeth = undefined
+  @Type(() => Dinosaur_SwingingTail)
+  swinging_tail?: Dinosaur_SwingingTail = undefined
+}
+
+export class Dinosaur_SwingingTail {
+
+}
+
+export class Dinosaur_SharpTeeth {
+
 }
 
 export enum Dinosaur_DietType {

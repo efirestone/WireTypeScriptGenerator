@@ -15,6 +15,9 @@ message Geolocation {
  * a large meteor on earth.
  */
 message Dinosaur {
+  message SwingingTail {}
+  message SharpTeeth {}
+
   enum DietType {
     UNKNOWN = 0;
     VEGETARIAN = 1;
@@ -45,5 +48,10 @@ message Dinosaur {
   optional Geolocation location = 6;
   optional DietType diet_type = 7;
 
-  optional SleepSchedule sleep_schedule = 8;
+  oneof primary_defense_mechanism {
+    SharpTeeth sharp_tail = 8;
+    SwingingTail swinging_tail = 9;
+  }
+
+  optional SleepSchedule sleep_schedule = 10;
 }
