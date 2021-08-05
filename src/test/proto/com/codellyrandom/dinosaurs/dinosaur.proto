@@ -3,6 +3,7 @@ syntax = "proto2";
 package com.codellyrandom.dinosaurs;
 
 import "geology/period.proto";
+import "google/protobuf/timestamp.proto";
 
 message Geolocation {
   required double latitude = 1;
@@ -54,4 +55,6 @@ message Dinosaur {
   }
 
   optional SleepSchedule sleep_schedule = 10;
+
+  optional google.protobuf.Timestamp earliest_known_fossil = 11;
 }

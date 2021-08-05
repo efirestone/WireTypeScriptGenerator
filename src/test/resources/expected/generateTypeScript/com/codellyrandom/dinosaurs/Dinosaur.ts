@@ -20,6 +20,8 @@ export default class Dinosaur {
   diet_type?: Dinosaur_DietType = undefined
   @Type(() => Dinosaur_SleepSchedule)
   sleep_schedule?: Dinosaur_SleepSchedule = undefined
+  @Type(() => Date)
+  earliest_known_fossil?: Date = undefined
 
   // primary_defense_mechanism: At most one of these fields will be non-null
   @Type(() => Dinosaur_SharpTeeth)

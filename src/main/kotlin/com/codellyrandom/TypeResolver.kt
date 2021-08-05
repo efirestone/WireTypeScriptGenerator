@@ -1,11 +1,16 @@
 package com.codellyrandom
 
-import com.squareup.wire.schema.ProtoType
-import com.squareup.wire.schema.Type
+import com.squareup.wire.Syntax
+import com.squareup.wire.schema.*
 import java.lang.IllegalStateException
 
 // Converts protobuf types to TypeScript types
 class TypeResolver(private val typesByProtoType: MutableMap<ProtoType, Type> = mutableMapOf()) {
+
+    init {
+        add(Type.createDummyMessageType(ProtoType.TIMESTAMP))
+    }
+
     fun add(type: Type) {
         typesByProtoType[type.type] = type
     }
@@ -15,6 +20,7 @@ class TypeResolver(private val typesByProtoType: MutableMap<ProtoType, Type> = m
     fun typeFor(type: ProtoType): Type? = typesByProtoType[type]
 
     fun nameFor(type: ProtoType): String {
+        // Scalars
         if (type.isScalar) {
             return when (type.toString()) {
                 "double", "float",
@@ -29,9 +35,33 @@ class TypeResolver(private val typesByProtoType: MutableMap<ProtoType, Type> = m
                 else -> throw IllegalStateException("Unknown scalar type $type")
             }
         }
+
+        // Built-in Types
+        when (type.toString()) {
+            "google.protobuf.Timestamp" -> return "Date"
+        }
+
+        // Everything else
         return type.toString()
             .split(".")
             .filter { it[0].isUpperCase() }
             .joinToString("_")
     }
+}
+
+private fun Type.Companion.createDummyMessageType(protoType: ProtoType): Type {
+    return MessageType(
+        type = protoType,
+        location = Location.get("fake/path"),
+        documentation = "",
+        name = "",
+        declaredFields = listOf(),
+        extensionFields = mutableListOf(),
+        oneOfs = listOf(),
+        nestedTypes = listOf(),
+        extensionsList = listOf(),
+        reserveds = listOf(),
+        options = Options(Options.MESSAGE_OPTIONS, listOf()),
+        syntax = Syntax.PROTO_3
+    )
 }

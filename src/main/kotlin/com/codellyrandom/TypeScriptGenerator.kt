@@ -98,7 +98,12 @@ class TypeScriptGenerator : CustomHandlerBeta {
         val packageComponents = type.type.packageComponents
         val referencedTypes = type.referencedTypesAndNestedReferencedTypes
         val typesInFile = type.typesAndNestedTypes().map { it.type }
-        val typesOutsideFile = referencedTypes.subtract(typesInFile)
+
+        // We only need to import the types not in this file.
+        // Also filter out the built-in types as we'll use native TypeScript types for those.
+        val typesOutsideFile = referencedTypes
+            .subtract(typesInFile)
+            .filter { !it.toString().startsWith("google.protobuf") }
 
         val transformerImport = if (referencedTypes.isEmpty()) {
             listOf()
@@ -114,7 +119,8 @@ class TypeScriptGenerator : CustomHandlerBeta {
                 }
                 acc
             }
-            //
+
+            // Turn the components into a relative path compared this file.
             val commonComponentCount = it.packageComponents.size - relativePackage.size
             var backingOutPath = (1 .. (packageComponents.size - commonComponentCount)).map { ".." }
             if (backingOutPath.isEmpty()) {
