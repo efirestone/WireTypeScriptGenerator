@@ -1,7 +1,7 @@
 import { Type } from "class-transformer"
 
 import Period from "../geology/Period"
-import Geolocation from "./Geolocation"
+import { CommonTypes_Geolocation } from "./CommonTypes"
 
 // A now-extinct lizard-like creature.
 // It's likely that they went extinct due to the impact of
@@ -15,8 +15,8 @@ export default class Dinosaur {
   length_meters?: number = undefined
   mass_kilograms?: number = undefined
   period?: Period = undefined
-  @Type(() => Geolocation)
-  location?: Geolocation = undefined
+  @Type(() => CommonTypes_Geolocation)
+  location?: CommonTypes_Geolocation = undefined
   diet_type?: Dinosaur_DietType = undefined
   @Type(() => Dinosaur_SleepSchedule)
   sleep_schedule?: Dinosaur_SleepSchedule = undefined

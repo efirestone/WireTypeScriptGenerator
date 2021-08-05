@@ -2,13 +2,9 @@ syntax = "proto2";
 
 package com.codellyrandom.dinosaurs;
 
+import "dinosaurs/common_types.proto";
 import "geology/period.proto";
 import "google/protobuf/timestamp.proto";
-
-message Geolocation {
-  required double latitude = 1;
-  required double longitude = 2;
-}
 
 /**
  * A now-extinct lizard-like creature.
@@ -46,7 +42,7 @@ message Dinosaur {
   optional double length_meters = 3;
   optional double mass_kilograms = 4;
   optional com.codellyrandom.geology.Period period = 5;
-  optional Geolocation location = 6;
+  optional CommonTypes.Geolocation location = 6;
   optional DietType diet_type = 7;
 
   oneof primary_defense_mechanism {

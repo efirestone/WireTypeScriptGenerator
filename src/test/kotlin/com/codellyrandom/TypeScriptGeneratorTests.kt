@@ -48,8 +48,8 @@ class TypeScriptGeneratorTests {
             .sorted()
 
         assertEquals(
-            expectedRelativePaths,
             actualRelativePaths,
+            expectedRelativePaths,
             "Actual generated file list doesn't match the expected list"
         )
 

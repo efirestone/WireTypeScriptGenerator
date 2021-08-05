@@ -20,6 +20,8 @@ class UnresolvedTypeManager(
         filesByProtoType[protoType] = path
     }
 
+    // When we encounter new types they should be passed here
+    // so that they can be resolved in other files that may have referenced them.
     fun resolve(types: Set<Type>) {
         unresolvedFieldProtoTypesByParentProtoType.forEach { entry ->
             val typesToResolve = types.filter { entry.value.contains(it.type) }

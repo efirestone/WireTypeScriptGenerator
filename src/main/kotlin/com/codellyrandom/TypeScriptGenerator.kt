@@ -127,8 +127,16 @@ class TypeScriptGenerator : CustomHandlerBeta {
                 backingOutPath = listOf(".")
             }
             val importPath = backingOutPath.plus(relativePackage).joinToString("/")
-            // For now this only supports importing the default export.
-            "import ${it.simpleName} from \"$importPath/${it.simpleName}\""
+
+            val nameComponents = it.nameComponents
+            val typeName = typeResolver.nameFor(it)
+            if (nameComponents.size == 1) {
+                // Each top-level type gets its own file and is the default export from that file.
+                "import $typeName from \"$importPath/${nameComponents[0]}\""
+            } else {
+                // This is a nested type.
+                "import { $typeName } from \"$importPath/${nameComponents[0]}\""
+            }
         }
 
         return transformerImport.plus(typeImports)
