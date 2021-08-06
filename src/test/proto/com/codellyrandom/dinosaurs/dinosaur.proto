@@ -12,8 +12,15 @@ import "google/protobuf/timestamp.proto";
  * a large meteor on earth.
  */
 message Dinosaur {
-  message SwingingTail {}
-  message SharpTeeth {}
+  message DefenseMechanism {
+    message SwingingTail {}
+    message SharpTeeth {}
+
+    oneof defense {
+      SharpTeeth sharp_tail = 1;
+      SwingingTail swinging_tail = 2;
+    }
+  }
 
   enum DietType {
     UNKNOWN = 0;
@@ -45,10 +52,7 @@ message Dinosaur {
   optional CommonTypes.Geolocation location = 6;
   optional DietType diet_type = 7;
 
-  oneof primary_defense_mechanism {
-    SharpTeeth sharp_tail = 8;
-    SwingingTail swinging_tail = 9;
-  }
+  optional DefenseMechanism defense_mechanism = 8;
 
   optional SleepSchedule sleep_schedule = 10;
 
