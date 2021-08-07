@@ -43,8 +43,8 @@ class TypeScriptClassGenerator(
             } else if (requiredFields.isEmpty()) {
                 // Return a nicely formatted convenience constructor
                 return """
-                    |  constructor(configure: (o: ${typeResolver.nameFor(type.type)}) => void = (_ => {})) {
-                    |    configure(this)
+                    |  constructor(configure: ((o: ${typeResolver.nameFor(type.type)}) => void) | undefined = undefined) {
+                    |    configure?.call(this, this)
                     |  }
                     |""".trimMargin().trimEnd()
             }
@@ -79,10 +79,10 @@ class TypeScriptClassGenerator(
                 return """
                     |  constructor(
                     |$arguments
-                    |    configure: (o: ${typeResolver.nameFor(type.type)}) => void = (_ => {})
+                    |    configure: ((o: ${typeResolver.nameFor(type.type)}) => void) | undefined = undefined
                     |  ) {
                     |$assignments
-                    |    configure(this)
+                    |    configure?.call(this, this)
                     |  }
                     |""".trimMargin().trimEnd()
             }
