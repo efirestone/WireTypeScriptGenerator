@@ -1,0 +1,15 @@
+syntax = "proto2";
+
+package com.codellyrandom.dinosaurs;
+
+message StampedeRequest {
+  required int32 count = 1 [default = 5];
+}
+
+message StampedeResponse {
+  required int32 actual_count = 1;
+}
+
+service DinosaursService {
+  rpc Stampede(StampedeRequest) returns (StampedeResponse);
+}

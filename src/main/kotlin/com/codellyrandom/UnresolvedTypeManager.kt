@@ -42,9 +42,9 @@ class UnresolvedTypeManager(
             val file = filesByProtoType[rootType]!!.toFile()
             var contents = file.inputStream().readBytes().toString(encoding)
             typesToResolve.forEach { type ->
-                val token = type.type.fieldAssociationToken
+                val token = type.type.fieldDecoratorToken
                 contents = when (type) {
-                    is MessageType -> contents.replace(token, type.type.fieldAssociation(typeResolver))
+                    is MessageType -> contents.replace(token, "  " + type.type.fieldDecorator(typeResolver))
                     is EnumType -> contents.replace(token, "")
                     else -> throw IllegalStateException("Unknown proto type $type")
                 }

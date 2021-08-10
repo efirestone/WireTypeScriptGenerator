@@ -27,8 +27,13 @@ class TypeScriptGenerator : CustomHandlerBeta {
     ): Target.SchemaHandler {
         return object : Target.SchemaHandler {
             override fun handle(type: Type): Path? {
-                val generated = LinkedHashMap<Type, String>()
-                toTypeScriptTypes(type, typeResolver, generated)
+                // If this type is a request or response in a service then it will
+                // be included in the service's file.
+                if (typeResolver.rpcForRequestOrResponse(type.type) != null) {
+                    return null
+                }
+
+                val generated = toTypeScriptTypes(type, true, typeResolver)
 
                 val imports = toTypeScriptImports(type)
 
@@ -40,8 +45,37 @@ class TypeScriptGenerator : CustomHandlerBeta {
             }
 
             override fun handle(service: Service): List<Path> {
-                // We don't support generating services for now.
-                return emptyList()
+                writeClientInterface(service)
+
+                val staticImports = listOf(
+                    "import { plainToClass, serialize } from \"class-transformer\"",
+                    "import ServiceNetworkClient from \"./ServiceNetworkClient\"",
+                )
+
+                val types = service.requestAndResponseProtoTypes.map {
+                    // We rely on the fact that any referenced request/response types have already been parsed.
+                    // This will be true for any types declared in the same file, which is good enough for now.
+                    typeResolver.typeFor(it)!!
+                }
+                val imports = types.fold(staticImports) { acc, type ->
+                    acc.plus(toTypeScriptImports(type))
+                }.distinct().sorted()
+
+                val typeContent = LinkedHashMap<Type, String>()
+                types.forEach { toTypeScriptTypes(it, false, typeResolver, typeContent) }
+
+                val serviceContent = TypeScriptServiceGenerator(service, typeResolver).generate()
+
+                var content = ""
+                imports.forEach { content += it + "\n"}
+                content += "\n"
+                typeContent.forEach { content += it.value + "\n\n" }
+                content += serviceContent
+
+                val path = writeFile(service.type, content)
+                types.forEach { unresolvedTypeManager.setPathForProtoType(path, it.type) }
+
+                return listOf(path)
             }
 
             override fun handle(extend: Extend, field: Field): Path? {
@@ -55,6 +89,7 @@ class TypeScriptGenerator : CustomHandlerBeta {
                 claimedPaths: MutableMap<Path, String>,
                 isExclusive: Boolean
             ) {
+                protoFile.services.forEach { typeResolver.add(it) }
                 val typesInFile = protoFile.types.fold(setOf<Type>()) { acc, type ->
                     acc.plus(elements = type.typesAndNestedTypes())
                 }
@@ -73,6 +108,35 @@ class TypeScriptGenerator : CustomHandlerBeta {
                 }
                 return path
             }
+
+            private fun writeClientInterface(service: Service) {
+                val parts = toPath(service.type).toMutableList()
+                parts[parts.size - 1] = "ServiceNetworkClient.ts"
+
+                val content = """
+                    // A network response.
+                    // AxiosResponse fulfills the requirements of this interface.  
+                    export interface ServiceNetworkResponse<T = any> {
+                      data: T;
+                    }
+                    
+                    // A network client which can send requests.
+                    // AxiosInstance fulfills the requirements of this interface and can be passed in via
+                    //   (axios as ServiceNetwork)
+                    export default interface ServiceNetworkClient {
+                      // Send a POST network request to a given path. 
+                      // The path will not include the domain and will be something like "/users/add"
+                      // The data will be the a JSON string to send as the request payload.
+                      post<T = any, R = ServiceNetworkResponse<T>>(path: string, data?: any): Promise<R>;
+                    }
+                """.trimIndent()
+
+                val path = fs.getPath(outDirectory, *parts.toTypedArray())
+                Files.createDirectories(path.parent)
+                path.sink().buffer().use { sink ->
+                    sink.writeUtf8(content)
+                }
+            }
         }
     }
 
@@ -86,14 +150,20 @@ class TypeScriptGenerator : CustomHandlerBeta {
         return result
     }
 
-    private fun toTypeScript(type: Type, typeResolver: TypeResolver): String {
+    private fun toTypeScript(type: Type, exportAsDefault: Boolean, typeResolver: TypeResolver): String {
         return when (type) {
             is EnumType -> TypeScriptEnumGenerator(type, typeResolver).generate()
-            is MessageType -> TypeScriptClassGenerator(type, typeResolver, unresolvedTypeManager).generate()
+            is MessageType -> TypeScriptClassGenerator(
+                type,
+                exportAsDefault,
+                typeResolver,
+                unresolvedTypeManager
+            ).generate()
             else -> throw IllegalStateException("Unknown proto type $type")
         }
     }
 
+    // Return the list of imports required for a given type.
     private fun toTypeScriptImports(type: Type): List<String> {
         val packageComponents = type.type.packageComponents
         val referencedTypes = type.referencedTypesAndNestedReferencedTypes
@@ -144,10 +214,16 @@ class TypeScriptGenerator : CustomHandlerBeta {
 
     // Generate the TypeScript code for this type and nested types.
     // Returns a LinkedHashMap so that it's ordered.
-    private fun toTypeScriptTypes(type: Type, typeResolver: TypeResolver, generated: LinkedHashMap<Type, String>) {
-        generated[type] = toTypeScript(type, typeResolver)
+    private fun toTypeScriptTypes(
+        type: Type,
+        exportAsDefault: Boolean,
+        typeResolver: TypeResolver,
+        generated: LinkedHashMap<Type, String> = LinkedHashMap()
+    ): LinkedHashMap<Type, String> {
+        generated[type] = toTypeScript(type, exportAsDefault, typeResolver)
         type.nestedTypes.forEach {
-            toTypeScriptTypes(it, typeResolver, generated)
+            toTypeScriptTypes(it, exportAsDefault, typeResolver, generated)
         }
+        return generated
     }
 }

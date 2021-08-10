@@ -223,6 +223,60 @@ enum MyNumber {
 Top-level enums in your protobufs will get their own `.ts` file, and nested enums will be generated within the file for
 the top-level type in which they are contained.
 
+### Protobuf RPC Services
+
+Services are supported and generate a TypeScript class of the same name.
+
+This protobuf service:
+
+```protobuf
+service DinosaursService {
+  rpc Stampede(StampedeRequest) returns (StampedeResponse);
+}
+```
+
+becomes:
+
+```typescript
+export default class DinosaursService {
+  client: ServiceNetworkClient
+  
+  constructor(client: ServiceNetworkClient) {
+    this.client = client
+  }
+
+  async stampede(request: StampedeRequest): Promise<StampedeResponse> {
+    const response = await this.client.post("dinosaurs/stampede", serialize(request))
+    return plainToClass(StampedeResponse, response.data as Map<string, any>)
+  }
+}
+```
+
+The service class (`DinosaursService` in this example) takes as an argument a `ServiceNetworkClient`, which is
+responsible for making the actual network requests. This is designed to be easily compatible with [Axios](https://github.com/axios/axios),
+and an `AxiosInstance` can be passed in as the `ServiceNetworkClient`. Other network clients will work as well, but
+might need a small wrapper in order to conform to `ServiceNetworkClient`.
+
+Each `rpc` definition in the protobuf service will be generated as a method in the service class. The URL path for each
+endpoint is derived from the service's name and the RPC's name: `<Service Name>/<RPC Name>`. Both are converted to kebab
+case, and the word "Service" is removed if it's present as suffix on the service class name.
+
+It's likely that you'll want to wrap the service within another controller, like so:
+
+```typescript
+export class NetworkDinosaursStore {
+  service = new DinosaursService(axios as ServiceNetworkClient)
+
+  async stampede(count: number) {
+    const request = new StampedeRequest(count)
+
+    // Response is a StampedResponse
+    const response = await this.service.stampede(request)
+    // ...do something with the response...
+  }
+}
+```
+
 ### Packages
 
 The Protobuf package is used for the path of a given generated type, but is not encoded into the type itself in any way.

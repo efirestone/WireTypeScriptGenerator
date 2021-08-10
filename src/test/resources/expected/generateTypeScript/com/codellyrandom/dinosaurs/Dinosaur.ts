@@ -25,8 +25,8 @@ export default class Dinosaur {
   @Type(() => Date)
   earliest_known_fossil?: Date = undefined
 
-  constructor(configure: (o: Dinosaur) => void = (_ => {})) {
-    configure(this)
+  constructor(configure: ((o: Dinosaur) => void) | undefined = undefined) {
+    configure?.call(this, this)
   }
 }
 
@@ -37,8 +37,8 @@ export class Dinosaur_DefenseMechanism {
   @Type(() => Dinosaur_DefenseMechanism_SwingingTail)
   swinging_tail?: Dinosaur_DefenseMechanism_SwingingTail = undefined
 
-  constructor(configure: (o: Dinosaur_DefenseMechanism) => void = (_ => {})) {
-    configure(this)
+  constructor(configure: ((o: Dinosaur_DefenseMechanism) => void) | undefined = undefined) {
+    configure?.call(this, this)
   }
 }
 
@@ -57,8 +57,8 @@ export class Dinosaur_SleepSchedule {
   @Type(() => Dinosaur_SleepSchedule_TimeSpan)
   awake: Dinosaur_SleepSchedule_TimeSpan[] = []
 
-  constructor(configure: (o: Dinosaur_SleepSchedule) => void = (_ => {})) {
-    configure(this)
+  constructor(configure: ((o: Dinosaur_SleepSchedule) => void) | undefined = undefined) {
+    configure?.call(this, this)
   }
 }
 

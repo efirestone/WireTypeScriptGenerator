@@ -5,10 +5,26 @@ import com.squareup.wire.schema.*
 import java.lang.IllegalStateException
 
 // Converts protobuf types to TypeScript types
-class TypeResolver(private val typesByProtoType: MutableMap<ProtoType, Type> = mutableMapOf()) {
+class TypeResolver(
+    private val rpcByRequestOrResponseProtoType: MutableMap<ProtoType, Rpc> = mutableMapOf(),
+    private val typesByProtoType: MutableMap<ProtoType, Type> = mutableMapOf()
+) {
 
     init {
         add(Type.createDummyMessageType(ProtoType.TIMESTAMP))
+    }
+
+    fun add(service: Service) {
+        service.rpcs.forEach {
+            val requestType = it.requestType
+            if (requestType != null) {
+                rpcByRequestOrResponseProtoType[requestType] = it
+            }
+            val responseType = it.responseType
+            if (responseType != null) {
+                rpcByRequestOrResponseProtoType[responseType] = it
+            }
+        }
     }
 
     fun add(type: Type) {
@@ -17,7 +33,11 @@ class TypeResolver(private val typesByProtoType: MutableMap<ProtoType, Type> = m
 
     // If this returns null the prototype may describe
     // a valid type, but we haven't registered it yet.
-    fun typeFor(type: ProtoType): Type? = typesByProtoType[type]
+    fun rpcForRequestOrResponse(protoType: ProtoType): Rpc? = rpcByRequestOrResponseProtoType[protoType]
+
+    // If this returns null the prototype may describe
+    // a valid type, but we haven't registered it yet.
+    fun typeFor(protoType: ProtoType): Type? = typesByProtoType[protoType]
 
     fun nameFor(type: ProtoType): String {
         // Scalars

@@ -8,6 +8,7 @@ import java.lang.IllegalStateException
 
 class TypeScriptClassGenerator(
     private val type: Type,
+    private val exportAsDefault: Boolean,
     private val typeResolver: TypeResolver,
     private val unresolvedTypeManager: UnresolvedTypeManager
 ) {
@@ -17,7 +18,7 @@ class TypeScriptClassGenerator(
             |
             |$constructor
             |""".trimMargin()
-        body = if (body.isBlank()) { "" } else { "\n  ${body.trim()}\n" }
+        body = if (body.isBlank()) { "" } else { "\n${body.trimEmptyLines()}\n" }
 
         return """
             |$documentation$export class ${typeResolver.nameFor(type.type)} {$body}
@@ -49,9 +50,9 @@ class TypeScriptClassGenerator(
                     |""".trimMargin().trimEnd()
             }
 
-            val arguments = requiredFields.fold("") { acc, field ->
+            val arguments = requiredFields.fold("") { acc, messageField ->
                 acc + toTypeScript(
-                    field = field,
+                    field = messageField,
                     indent = 4,
                     includeDocumentation = false,
                     includeTypeAssociation = false,
@@ -59,8 +60,8 @@ class TypeScriptClassGenerator(
                     useShortcutOptional = false
                 ) + ",\n"
             }.trimEnd()
-            val assignments = requiredFields.fold("") { acc, field ->
-                val name = field.jsonName ?: field.name
+            val assignments = requiredFields.fold("") { acc, messageField ->
+                val name = messageField.jsonName ?: messageField.name
                 "$acc    this.$name = $name\n"
             }.trimEnd()
 
@@ -91,14 +92,14 @@ class TypeScriptClassGenerator(
     private val documentation: String = type.documentation.toDocumentation(0)
 
     private val export: String
-        get() = if (type.type.isRootType) "export default" else "export"
+        get() = if (exportAsDefault && type.type.isRootType) "export default" else "export"
 
     private val fields: String
         get() {
             if (type is MessageType) {
-                var content = (type.declaredFields + type.extensionFields).fold("") { acc, field ->
+                var content = (type.declaredFields + type.extensionFields).fold("") { acc, messageField ->
                     acc + toTypeScript(
-                        field = field,
+                        field = messageField,
                         indent = 2,
                         includeDocumentation = true,
                         includeTypeAssociation = true,
@@ -145,8 +146,8 @@ class TypeScriptClassGenerator(
             stringBuilder.append(
                 when (fullType) {
                     is EnumType -> ""
-                    is MessageType -> fieldType.fieldAssociation(typeResolver)
-                    null -> fieldType.fieldAssociationToken
+                    is MessageType -> " ".repeat(indent) + fieldType.fieldDecorator(typeResolver)
+                    null -> fieldType.fieldDecoratorToken
                     else -> throw IllegalStateException("Unknown field type.")
                 }
             )
