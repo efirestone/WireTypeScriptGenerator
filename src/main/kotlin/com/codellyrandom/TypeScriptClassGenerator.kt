@@ -1,6 +1,5 @@
 package com.codellyrandom
 
-import com.squareup.wire.schema.EnumType
 import com.squareup.wire.schema.Field
 import com.squareup.wire.schema.MessageType
 import com.squareup.wire.schema.Type
@@ -21,8 +20,9 @@ class TypeScriptClassGenerator(
         body = if (body.isBlank()) { "" } else { "\n${body.trimEmptyLines()}\n" }
 
         return """
-            |$documentation$export class ${typeResolver.nameFor(type.type)} {$body}
-            |""".trimMargin().trimEnd()
+            |${type.documentation.toDocumentation(0)}
+            |$export class ${typeResolver.nameFor(type.type)} {$body}
+            |""".trimMargin().trimEmptyLines()
     }
 
     // Provide a convenient constructor that works for all types.
@@ -36,6 +36,8 @@ class TypeScriptClassGenerator(
             if (type !is MessageType) {
                 throw IllegalStateException("Protobuf type $type cannot be converted to a TypeScript class")
             }
+            // Only required fields go in the constructor so that we force them to be set.
+            // All other fields can optionally be set with the `configure` block.
             val requiredFields = (type.declaredFields + type.extensionFields)
                 .filter { it.label == Field.Label.REQUIRED || it.label == null }
             if (type.fieldsAndOneOfFields.isEmpty()) {
@@ -50,16 +52,6 @@ class TypeScriptClassGenerator(
                     |""".trimMargin().trimEnd()
             }
 
-            val arguments = requiredFields.fold("") { acc, messageField ->
-                acc + toTypeScript(
-                    field = messageField,
-                    indent = 4,
-                    includeDocumentation = false,
-                    includeTypeAssociation = false,
-                    includeDefault = true,
-                    useShortcutOptional = false
-                ) + ",\n"
-            }.trimEnd()
             val assignments = requiredFields.fold("") { acc, messageField ->
                 val name = messageField.jsonName ?: messageField.name
                 "$acc    this.$name = $name\n"
@@ -70,26 +62,23 @@ class TypeScriptClassGenerator(
                 // If we can configure all the fields as arguments, then there's no need
                 // for the configure block.
                 return """
-                    |  constructor(
-                    |${arguments.trimEnd(',')}
-                    |  ) {
+                    |  constructor(${requiredFields.toConstructorArguments(typeResolver)}) {
                     |$assignments
                     |  }
                     |""".trimMargin().trimEnd()
             } else {
+                val arguments = requiredFields.toConstructorArguments(
+                    typeResolver,
+                    listOf("configure: ((o: ${typeResolver.nameFor(type.type)}) => void) | undefined = undefined")
+                )
                 return """
-                    |  constructor(
-                    |$arguments
-                    |    configure: ((o: ${typeResolver.nameFor(type.type)}) => void) | undefined = undefined
-                    |  ) {
+                    |  constructor($arguments) {
                     |$assignments
                     |    configure?.call(this, this)
                     |  }
                     |""".trimMargin().trimEnd()
             }
         }
-
-    private val documentation: String = type.documentation.toDocumentation(0)
 
     private val export: String
         get() = if (exportAsDefault && type.type.isRootType) "export default" else "export"
@@ -98,87 +87,28 @@ class TypeScriptClassGenerator(
         get() {
             if (type is MessageType) {
                 var content = (type.declaredFields + type.extensionFields).fold("") { acc, messageField ->
-                    acc + toTypeScript(
-                        field = messageField,
-                        indent = 2,
-                        includeDocumentation = true,
-                        includeTypeAssociation = true,
-                        includeDefault = true,
-                        useShortcutOptional = true
-                    ) +"\n"
+                    acc + messageField.toClassMember(typeResolver) + "\n"
                 }.trimEnd()
 
                 type.oneOfs.forEach { oneOf ->
                     content += "\n\n  // ${oneOf.name}: At most one of these fields will be non-null\n"
-                    content += oneOf.documentation.toDocumentation(2)
+                    content += (oneOf.documentation.toDocumentation(2) + "\n").trimEmptyLines()
                     content = oneOf.fields.fold(content) { acc, field ->
-                        acc + toTypeScript(
-                            field = field,
-                            indent = 2,
-                            includeDocumentation = true,
-                            includeTypeAssociation = true,
-                            includeDefault = true,
-                            useShortcutOptional = true
-                        ) +"\n"
+                        acc + field.toClassMember(typeResolver) + "\n"
                     }.trimEnd()
+                }
+
+                // Record any unresolved types so that when we see them in the future we can go back
+                // and resolve them.
+                type.fieldsAndOneOfFields.forEach {
+                    val fieldProtoType = it.type
+                    if (fieldProtoType != null && typeResolver.typeFor(fieldProtoType) == null) {
+                        unresolvedTypeManager.addUnresolvedFieldProtoType(fieldProtoType, type.type)
+                    }
                 }
 
                 return content
             }
             throw IllegalStateException("Protobuf type $type cannot be converted to a TypeScript class")
         }
-
-    private fun toTypeScript(
-        field: Field,
-        indent: Int,
-        includeDocumentation: Boolean,
-        includeTypeAssociation: Boolean,
-        includeDefault: Boolean,
-        useShortcutOptional: Boolean
-    ): String {
-        val stringBuilder = StringBuilder()
-        val fieldType = field.type!!
-        if (includeDocumentation) {
-            stringBuilder.append(field.documentation.toDocumentation(2))
-        }
-        if (includeTypeAssociation && !fieldType.isScalar) {
-            val fullType = typeResolver.typeFor(fieldType)
-            stringBuilder.append(
-                when (fullType) {
-                    is EnumType -> ""
-                    is MessageType -> " ".repeat(indent) + fieldType.fieldDecorator(typeResolver)
-                    null -> fieldType.fieldDecoratorToken
-                    else -> throw IllegalStateException("Unknown field type.")
-                }
-            )
-            if (fullType == null) {
-                unresolvedTypeManager.addUnresolvedFieldProtoType(fieldType, type.type)
-            }
-        }
-        stringBuilder.append(" ".repeat(indent))
-        stringBuilder.append(field.jsonName ?: field.name)
-
-        val isOptional = field.label == Field.Label.OPTIONAL || field.isOneOf
-        if (useShortcutOptional && isOptional) {
-            stringBuilder.append("?")
-        }
-        stringBuilder.append(": ")
-        stringBuilder.append(typeResolver.nameFor(fieldType))
-        if (field.isRepeated) {
-            stringBuilder.append("[]")
-        }
-        if (!useShortcutOptional && isOptional) {
-            stringBuilder.append(" | undefined")
-        }
-        if (includeDefault) {
-            if (field.default != null) {
-                stringBuilder.append(" = ${field.default}")
-            } else if (isOptional) {
-                stringBuilder.append(" = undefined")
-            } else if (field.isRepeated) {
-                stringBuilder.append(" = []")
-            }
-        }
-        return stringBuilder.toString()
-    }
 }

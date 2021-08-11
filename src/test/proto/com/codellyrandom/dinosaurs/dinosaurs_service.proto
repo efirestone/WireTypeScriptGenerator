@@ -10,6 +10,8 @@ message StampedeResponse {
   required int32 actual_count = 1;
 }
 
+// Actions that dinosaurs can take.
 service DinosaursService {
+  // Start a stampede of a certain size.
   rpc Stampede(StampedeRequest) returns (StampedeResponse);
 }

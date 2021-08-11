@@ -5,7 +5,7 @@ fun String.toDocumentation(indent: Int): String {
 
     return this.split("\n")
         .map { "${" ".repeat(indent) }// $it"}
-        .joinToString("\n") + "\n"
+        .joinToString("\n")
 }
 
 fun String.toKebabCase(): String {

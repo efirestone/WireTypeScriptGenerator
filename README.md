@@ -247,7 +247,7 @@ export default class DinosaursService {
 
   async stampede(request: StampedeRequest): Promise<StampedeResponse> {
     const response = await this.client.post("dinosaurs/stampede", serialize(request))
-    return plainToClass(StampedeResponse, response.data as Map<string, any>)
+    return plainToClass(StampedeResponse, response.data as JSON)
   }
 }
 ```

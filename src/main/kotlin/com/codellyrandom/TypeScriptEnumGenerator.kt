@@ -5,19 +5,18 @@ import java.lang.IllegalStateException
 
 class TypeScriptEnumGenerator(
     private val type: Type,
-    private val typeResolver: TypeResolver = TypeResolver()
+    private val typeResolver: TypeResolver
 ) {
     fun generate(): String {
         return """
-            |${documentation}${inlineExport}enum ${typeResolver.nameFor(type.type)} {
+            |${type.documentation.toDocumentation(0)}
+            |${inlineExport}enum ${typeResolver.nameFor(type.type)} {
             |$constants
             |}
             |
             |$exportStatement
-            |""".trimMargin().trimEnd()
+            |""".trimMargin().trimEmptyLines()
     }
-
-    private val documentation: String = type.documentation.toDocumentation(0)
 
     private val inlineExport: String
         get() = if (type.type.isRootType) "" else "export "
@@ -40,8 +39,8 @@ class TypeScriptEnumGenerator(
         includeDocumentation: Boolean = true
     ): String {
         val stringBuilder = StringBuilder()
-        if (includeDocumentation) {
-            stringBuilder.append(constant.documentation.toDocumentation(2))
+        if (includeDocumentation && constant.documentation.isNotBlank()) {
+            stringBuilder.append(constant.documentation.toDocumentation(2) + "\n")
         }
         stringBuilder.append("  ${constant.name} = \"${constant.name}\",")
 

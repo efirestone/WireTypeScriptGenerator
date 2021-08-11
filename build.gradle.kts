@@ -1,5 +1,5 @@
 val artifactGroup = "com.codellyrandom"
-val artifactVersion = "0.1.2"
+val artifactVersion = "0.1.3"
 
 group = artifactGroup
 version = artifactVersion
