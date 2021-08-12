@@ -14,10 +14,10 @@ fun List<Field>.toConstructorArguments(
     val arguments = this.map { it.toArgument(typeResolver) }.plus(additionalArguments)
     val singleLine = arguments.joinToString(", ")
 
-    return if (singleLine.length < 60) {
+    return if (singleLine.length < 98) {
         singleLine
     } else {
-        "\n${arguments.joinToString(",\n  " )}\n"
+        "\n    ${arguments.joinToString(",\n    " )}\n  "
     }
 }
 

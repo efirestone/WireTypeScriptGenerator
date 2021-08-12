@@ -34,7 +34,8 @@ message Dinosaur {
       required int32 start = 1;
       required int32 end = 2;
     }
-    repeated TimeSpan awake = 1;
+    required string name = 1;
+    repeated TimeSpan awake = 2;
   }
 
   /**

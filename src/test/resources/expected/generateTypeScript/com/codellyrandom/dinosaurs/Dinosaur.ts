@@ -54,10 +54,12 @@ export enum Dinosaur_DietType {
 }
 
 export class Dinosaur_SleepSchedule {
+  name: string
   @Type(() => Dinosaur_SleepSchedule_TimeSpan)
   awake: Dinosaur_SleepSchedule_TimeSpan[] = []
 
-  constructor(configure: ((o: Dinosaur_SleepSchedule) => void) | undefined = undefined) {
+  constructor(name: string, configure: ((o: Dinosaur_SleepSchedule) => void) | undefined = undefined) {
+    this.name = name
     configure?.call(this, this)
   }
 }
