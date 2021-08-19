@@ -9,13 +9,13 @@ val Type.referencedTypesAndNestedReferencedTypes: List<ProtoType>
         val types = mutableListOf<ProtoType>()
         if (this is MessageType) {
             types.addAll(
-                this.fields
+                fieldsAndOneOfFields
                 .mapNotNull { it.type }
                 .filter { !it.isScalar }
             )
         }
         return nestedTypes.fold(types) { acc, type ->
             acc.addAll(type.referencedTypesAndNestedReferencedTypes)
-            return acc
+            return@fold acc
         }.toList()
     }
