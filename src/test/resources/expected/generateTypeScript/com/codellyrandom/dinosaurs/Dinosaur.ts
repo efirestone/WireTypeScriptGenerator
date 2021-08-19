@@ -6,7 +6,7 @@ import { CommonTypes_Geolocation } from "./CommonTypes"
 // A now-extinct lizard-like creature.
 // It's likely that they went extinct due to the impact of
 // a large meteor on earth.
-export default class Dinosaur {
+export class Dinosaur {
   // Common name of this dinosaur
   // For example, "Stegosaurus".
   name?: string = undefined
@@ -29,6 +29,8 @@ export default class Dinosaur {
     configure?.call(this, this)
   }
 }
+
+export default Dinosaur
 
 export class Dinosaur_DefenseMechanism {
   // defense: At most one of these fields will be non-null

@@ -1,4 +1,6 @@
-export default class CommonTypes {}
+export class CommonTypes {}
+
+export default CommonTypes
 
 export class CommonTypes_Geolocation {
   latitude: number

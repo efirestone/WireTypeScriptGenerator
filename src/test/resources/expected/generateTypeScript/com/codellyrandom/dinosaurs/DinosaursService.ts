@@ -18,7 +18,7 @@ export class StampedeResponse {
 }
 
 // Actions that dinosaurs can take.
-export default class DinosaursService {
+export class DinosaursService {
   client: ServiceNetworkClient
 
   constructor(client: ServiceNetworkClient) {
@@ -31,3 +31,5 @@ export default class DinosaursService {
     return plainToClass(StampedeResponse, response.data as JSON)
   }
 }
+
+export default DinosaursService

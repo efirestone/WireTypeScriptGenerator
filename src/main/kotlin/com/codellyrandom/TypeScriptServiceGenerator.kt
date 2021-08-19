@@ -10,7 +10,7 @@ class TypeScriptServiceGenerator(
     fun generate(): String {
         return """
             |${service.documentation.toDocumentation(0)}
-            |export default class ${service.name} {
+            |export class ${service.name} {
             |  client: ServiceNetworkClient
             |
             |  constructor(client: ServiceNetworkClient) {
@@ -19,6 +19,8 @@ class TypeScriptServiceGenerator(
             |
             |$rpcs
             |}
+            |
+            |export default ${service.name}
             |""".trimMargin()
     }
 

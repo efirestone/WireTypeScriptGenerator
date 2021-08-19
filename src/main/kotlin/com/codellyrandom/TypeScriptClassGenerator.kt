@@ -21,7 +21,9 @@ class TypeScriptClassGenerator(
 
         return """
             |${type.documentation.toDocumentation(0)}
-            |$export class ${typeResolver.nameFor(type.type)} {$body}
+            |export class ${typeResolver.nameFor(type.type)} {$body}
+            |
+            |$defaultExport
             |""".trimMargin().trimEmptyLines()
     }
 
@@ -80,8 +82,8 @@ class TypeScriptClassGenerator(
             }
         }
 
-    private val export: String
-        get() = if (exportAsDefault && type.type.isRootType) "export default" else "export"
+    private val defaultExport: String
+        get() = if (exportAsDefault && type.type.isRootType) "export default ${typeResolver.nameFor(type.type)}" else ""
 
     private val fields: String
         get() {
