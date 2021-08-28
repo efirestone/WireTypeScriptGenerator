@@ -165,7 +165,7 @@ class TypeScriptGenerator : CustomHandlerBeta {
 
     // Return the list of imports required for a given type.
     private fun toTypeScriptImports(type: Type): List<String> {
-        val packageComponents = type.type.packageComponents
+        val importCalculator = ImportPathCalculator(type.type, typeResolver)
         val referencedTypes = type.referencedTypesAndNestedReferencedTypes
         val typesInFile = type.typesAndNestedTypes().map { it.type }
 
@@ -181,32 +181,7 @@ class TypeScriptGenerator : CustomHandlerBeta {
             listOf("import { Type } from \"class-transformer\"\n")
         }
         val typeImports = typesOutsideFile.map {
-            // Convert package/directory structure to be relative to
-            // the current package/directory.
-            val relativePackage = it.packageComponents.foldIndexed(mutableListOf<String>()) { index, acc, component ->
-                if (acc.isNotEmpty() || component != packageComponents[index]) {
-                    acc.add(component)
-                }
-                acc
-            }
-
-            // Turn the components into a relative path compared this file.
-            val commonComponentCount = it.packageComponents.size - relativePackage.size
-            var backingOutPath = (1 .. (packageComponents.size - commonComponentCount)).map { ".." }
-            if (backingOutPath.isEmpty()) {
-                backingOutPath = listOf(".")
-            }
-            val importPath = backingOutPath.plus(relativePackage).joinToString("/")
-
-            val nameComponents = it.nameComponents
-            val typeName = typeResolver.nameFor(it)
-            if (nameComponents.size == 1) {
-                // Each top-level type gets its own file and is the default export from that file.
-                "import $typeName from \"$importPath/${nameComponents[0]}\""
-            } else {
-                // This is a nested type.
-                "import { $typeName } from \"$importPath/${nameComponents[0]}\""
-            }
+            importCalculator.importStatementFor(it)
         }
 
         return transformerImport.plus(typeImports)
