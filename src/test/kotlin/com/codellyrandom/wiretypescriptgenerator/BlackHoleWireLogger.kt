@@ -1,4 +1,4 @@
-package com.codellyrandom
+package com.codellyrandom.wiretypescriptgenerator
 
 import com.squareup.javapoet.JavaFile
 import com.squareup.kotlinpoet.FileSpec

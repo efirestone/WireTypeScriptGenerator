@@ -1,4 +1,4 @@
-package com.codellyrandom
+package com.codellyrandom.wiretypescriptgenerator
 
 import com.squareup.wire.Syntax
 import com.squareup.wire.schema.*

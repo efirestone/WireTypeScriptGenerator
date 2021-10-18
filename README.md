@@ -39,7 +39,7 @@ Finally, configure the `wire` block to specify that we're using the TypeScript g
 ```kotlin
 wire {
     custom {
-        customHandlerClass = "com.codellyrandom.TypeScriptGenerator"
+        customHandlerClass = "com.codellyrandom.wiretypescriptgenerator.TypeScriptGenerator"
 
         exclusive = true
         out = "${buildDir}/custom"
@@ -74,7 +74,7 @@ wire {
         srcProject(":api")
     }
     custom {
-        customHandlerClass = "com.codellyrandom.TypeScriptGenerator"
+        customHandlerClass = "com.codellyrandom.wiretypescriptgenerator.TypeScriptGenerator"
 
         // This is optional, but lets you limit which protos
         // get translated into TypeScript.

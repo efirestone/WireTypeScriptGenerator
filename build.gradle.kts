@@ -1,5 +1,5 @@
-val artifactGroup = "com.codellyrandom"
-val artifactVersion = "0.1.7"
+val artifactGroup = "com.codellyrandom.wiretypescriptgenerator"
+val artifactVersion = "0.1.8"
 
 group = artifactGroup
 version = artifactVersion

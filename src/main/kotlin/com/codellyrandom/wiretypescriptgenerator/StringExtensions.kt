@@ -1,4 +1,4 @@
-package com.codellyrandom
+package com.codellyrandom.wiretypescriptgenerator
 
 fun String.toDocumentation(indent: Int): String {
     if (this.isBlank()) { return "" }
