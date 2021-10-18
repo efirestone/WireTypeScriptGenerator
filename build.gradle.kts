@@ -5,18 +5,18 @@ group = artifactGroup
 version = artifactVersion
 
 plugins {
-    kotlin("jvm") version "1.5.21"
+    kotlin("jvm") version "1.5.31"
     id("maven-publish")
     id("java")
     id("signing")
 }
 
 dependencies {
-    implementation("org.jetbrains.kotlin:kotlin-stdlib")
+    implementation(kotlin("stdlib:1.5.31"))
     implementation("com.squareup.wire:wire-compiler:3.7.0")
-    testImplementation(kotlin("test-junit"))
+    testImplementation(kotlin("test-junit:1.5.31"))
     testImplementation("com.squareup:javapoet:1.13.0")
-    testImplementation("io.outfoxx:swiftpoet:1.0.0")
+    testImplementation("io.outfoxx:swiftpoet:1.1.0")
 }
 
 repositories {
@@ -45,7 +45,7 @@ publishing {
                 licenses {
                     license {
                         name.set("The Apache License, Version 2.0")
-                        url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
+                        url.set("https://www.apache.org/licenses/LICENSE-2.0.txt")
                     }
                 }
                 developers {

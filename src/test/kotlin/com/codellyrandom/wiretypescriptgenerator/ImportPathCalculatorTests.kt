@@ -1,7 +1,5 @@
 package com.codellyrandom.wiretypescriptgenerator
 
-import com.codellyrandom.wiretypescriptgenerator.ImportPathCalculator
-import com.codellyrandom.wiretypescriptgenerator.TypeResolver
 import com.squareup.wire.schema.ProtoType
 import kotlin.test.Test
 import kotlin.test.assertEquals
