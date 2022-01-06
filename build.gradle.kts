@@ -16,7 +16,7 @@ dependencies {
     implementation("com.squareup.wire:wire-compiler:4.0.1")
     testImplementation(kotlin("test-junit:1.5.31"))
     testImplementation("com.squareup:javapoet:1.13.0")
-    testImplementation("io.outfoxx:swiftpoet:1.1.0")
+    testImplementation("io.outfoxx:swiftpoet:1.3.1")
 }
 
 repositories {
