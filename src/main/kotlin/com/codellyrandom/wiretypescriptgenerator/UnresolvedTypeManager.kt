@@ -1,8 +1,8 @@
 package com.codellyrandom.wiretypescriptgenerator
 
 import com.squareup.wire.schema.*
+import okio.Path
 import java.lang.IllegalStateException
-import java.nio.file.Path
 
 class UnresolvedTypeManager(
     private val typeResolver: TypeResolver,

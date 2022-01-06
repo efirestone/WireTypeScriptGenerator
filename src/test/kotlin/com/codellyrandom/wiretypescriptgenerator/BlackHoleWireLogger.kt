@@ -4,7 +4,7 @@ import com.squareup.javapoet.JavaFile
 import com.squareup.kotlinpoet.FileSpec
 import com.squareup.wire.WireLogger
 import com.squareup.wire.schema.ProtoType
-import java.nio.file.Path
+import okio.Path
 import io.outfoxx.swiftpoet.FileSpec as SwiftFileSpec
 
 internal class BlackHoleWireLogger : WireLogger {
@@ -14,7 +14,7 @@ internal class BlackHoleWireLogger : WireLogger {
 
     override fun artifactSkipped(type: ProtoType) {}
 
-    override fun info(message: String) {}
+    override fun warn(message: String) {}
 
     override fun artifact(outputPath: Path, javaFile: JavaFile) {}
 

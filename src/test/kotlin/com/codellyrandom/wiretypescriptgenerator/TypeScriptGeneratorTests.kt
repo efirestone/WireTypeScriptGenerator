@@ -3,6 +3,7 @@ package com.codellyrandom.wiretypescriptgenerator
 import com.squareup.wire.schema.CustomTargetBeta
 import com.squareup.wire.schema.Location
 import com.squareup.wire.schema.WireRun
+import okio.FileSystem
 import java.nio.file.FileSystems
 import java.nio.file.Files
 import java.nio.file.Path
@@ -24,10 +25,10 @@ class TypeScriptGeneratorTests {
             protoPath = listOf(Location.get("src/test/proto/com/codellyrandom")),
             targets = listOf(CustomTargetBeta(
                 outDirectory = outDir,
-                customHandlerClass = TypeScriptGenerator::class.qualifiedName!!
+                customHandler = TypeScriptGenerator()
             ))
         )
-        wireRun.execute(fs, logger)
+        wireRun.execute(FileSystem.SYSTEM, logger)
 
         assertNoDiff(outDir, "generateTypeScript")
     }

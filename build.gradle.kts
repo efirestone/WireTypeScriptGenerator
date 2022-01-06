@@ -1,19 +1,19 @@
 val artifactGroup = "com.codellyrandom.wiretypescriptgenerator"
-val artifactVersion = "0.1.8"
+val artifactVersion = "0.2.0"
 
 group = artifactGroup
 version = artifactVersion
 
 plugins {
     kotlin("jvm") version "1.5.31"
-    id("maven-publish")
     id("java")
+    id("maven-publish")
     id("signing")
 }
 
 dependencies {
     implementation(kotlin("stdlib:1.5.31"))
-    implementation("com.squareup.wire:wire-compiler:3.7.0")
+    implementation("com.squareup.wire:wire-compiler:4.0.1")
     testImplementation(kotlin("test-junit:1.5.31"))
     testImplementation("com.squareup:javapoet:1.13.0")
     testImplementation("io.outfoxx:swiftpoet:1.1.0")

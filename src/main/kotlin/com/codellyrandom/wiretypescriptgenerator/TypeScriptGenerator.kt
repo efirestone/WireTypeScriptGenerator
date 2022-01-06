@@ -3,12 +3,9 @@ package com.codellyrandom.wiretypescriptgenerator
 import com.squareup.wire.WireLogger
 import com.squareup.wire.schema.*
 import com.squareup.wire.schema.Target
-import okio.buffer
-import okio.sink
+import okio.Path
+import okio.Path.Companion.toPath
 import java.lang.IllegalStateException
-import java.nio.file.FileSystem
-import java.nio.file.Files
-import java.nio.file.Path
 
 /**
  * This is a sample handler that writes text files that describe types.
@@ -20,7 +17,7 @@ class TypeScriptGenerator : CustomHandlerBeta {
 
     override fun newHandler(
         schema: Schema,
-        fs: FileSystem,
+        fs: okio.FileSystem,
         outDirectory: String,
         logger: WireLogger,
         profileLoader: ProfileLoader
@@ -100,11 +97,11 @@ class TypeScriptGenerator : CustomHandlerBeta {
             }
 
             private fun writeFile(protoType: ProtoType, content: String): Path {
-                val path = fs.getPath(outDirectory, *toPath(protoType).toTypedArray())
+                val path = outDirectory.toPath() / toPath(protoType).joinToString("/")
                 unresolvedTypeManager.setPathForProtoType(path, protoType)
-                Files.createDirectories(path.parent)
-                path.sink().buffer().use { sink ->
-                    sink.writeUtf8(content)
+                fs.createDirectories(path.parent!!)
+                fs.write(path) {
+                    writeUtf8(content)
                 }
                 return path
             }
@@ -131,10 +128,10 @@ class TypeScriptGenerator : CustomHandlerBeta {
                     }
                 """.trimIndent()
 
-                val path = fs.getPath(outDirectory, *parts.toTypedArray())
-                Files.createDirectories(path.parent)
-                path.sink().buffer().use { sink ->
-                    sink.writeUtf8(content)
+                val path = outDirectory.toPath() / parts.joinToString("/")
+                fs.createDirectories(path.parent!!)
+                fs.write(path) {
+                    writeUtf8(content)
                 }
             }
         }
@@ -201,4 +198,5 @@ class TypeScriptGenerator : CustomHandlerBeta {
         }
         return generated
     }
+
 }
