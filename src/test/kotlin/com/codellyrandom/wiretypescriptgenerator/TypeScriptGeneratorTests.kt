@@ -26,9 +26,7 @@ class TypeScriptGeneratorTests {
             protoPath = listOf(Location.get("src/test/proto/com/codellyrandom")),
             targets = listOf(CustomTarget(
                 outDirectory = outDir,
-                schemaHandlerFactory = object : SchemaHandler.Factory {
-                    override fun create() = TypeScriptGenerator()
-                }
+                schemaHandlerFactory = TypeScriptGeneratorFactory()
             ))
         )
         wireRun.execute(FileSystem.SYSTEM, logger)

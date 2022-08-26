@@ -3,11 +3,10 @@ package com.codellyrandom.wiretypescriptgenerator
 import com.squareup.wire.schema.*
 import okio.FileSystem
 import okio.Path
-import okio.Path.Companion.toPath
 import java.lang.IllegalStateException
 
 /**
- * This is a sample handler that writes text files that describe types.
+ * A handler that writes out TypeScript types for protos.
  */
 @Suppress("unused")
 class TypeScriptGenerator : SchemaHandler() {

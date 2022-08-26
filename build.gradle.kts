@@ -1,5 +1,5 @@
 val artifactGroup = "com.codellyrandom.wiretypescriptgenerator"
-val artifactVersion = "0.3.0"
+val artifactVersion = "0.3.1"
 
 group = artifactGroup
 version = artifactVersion

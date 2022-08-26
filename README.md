@@ -74,7 +74,7 @@ wire {
         srcProject(":api")
     }
     custom {
-        customHandlerClass = "com.codellyrandom.wiretypescriptgenerator.TypeScriptGenerator"
+        schemaHandlerFactoryClass = "com.codellyrandom.wiretypescriptgenerator.TypeScriptGeneratorFactory"
 
         // This is optional, but lets you limit which protos
         // get translated into TypeScript.
