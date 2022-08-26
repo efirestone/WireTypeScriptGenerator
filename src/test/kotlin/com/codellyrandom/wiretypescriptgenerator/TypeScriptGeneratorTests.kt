@@ -1,7 +1,8 @@
 package com.codellyrandom.wiretypescriptgenerator
 
-import com.squareup.wire.schema.CustomTargetBeta
+import com.squareup.wire.schema.CustomTarget
 import com.squareup.wire.schema.Location
+import com.squareup.wire.schema.SchemaHandler
 import com.squareup.wire.schema.WireRun
 import okio.FileSystem
 import java.nio.file.FileSystems
@@ -23,9 +24,11 @@ class TypeScriptGeneratorTests {
         val wireRun = WireRun(
             sourcePath = listOf(Location.get("src/test/proto/com/codellyrandom")),
             protoPath = listOf(Location.get("src/test/proto/com/codellyrandom")),
-            targets = listOf(CustomTargetBeta(
+            targets = listOf(CustomTarget(
                 outDirectory = outDir,
-                customHandler = TypeScriptGenerator()
+                schemaHandlerFactory = object : SchemaHandler.Factory {
+                    override fun create() = TypeScriptGenerator()
+                }
             ))
         )
         wireRun.execute(FileSystem.SYSTEM, logger)

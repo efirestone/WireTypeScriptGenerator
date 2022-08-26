@@ -1,8 +1,7 @@
 package com.codellyrandom.wiretypescriptgenerator
 
-import com.squareup.wire.WireLogger
 import com.squareup.wire.schema.*
-import com.squareup.wire.schema.Target
+import okio.FileSystem
 import okio.Path
 import okio.Path.Companion.toPath
 import java.lang.IllegalStateException
@@ -11,106 +10,92 @@ import java.lang.IllegalStateException
  * This is a sample handler that writes text files that describe types.
  */
 @Suppress("unused")
-class TypeScriptGenerator : CustomHandlerBeta {
-    val typeResolver = TypeResolver()
-    val unresolvedTypeManager = UnresolvedTypeManager(typeResolver)
+class TypeScriptGenerator : SchemaHandler() {
+    private val typeResolver = TypeResolver()
+    private val unresolvedTypeManager = UnresolvedTypeManager(typeResolver)
 
-    override fun newHandler(
-        schema: Schema,
-        fs: okio.FileSystem,
-        outDirectory: String,
-        logger: WireLogger,
-        profileLoader: ProfileLoader
-    ): Target.SchemaHandler {
-        return object : Target.SchemaHandler {
-            override fun handle(type: Type): Path? {
-                // If this type is a request or response in a service then it will
-                // be included in the service's file.
-                if (typeResolver.rpcForRequestOrResponse(type.type) != null) {
-                    return null
-                }
-
-                val generated = toTypeScriptTypes(type, true, typeResolver)
-
-                val imports = toTypeScriptImports(type)
-
-                var content = ""
-                imports.forEach { content += it + "\n"}
-                content += "\n"
-                generated.forEach { content += it.value + "\n\n" }
-                return writeFile(type.type, content.trim() + "\n")
+    override fun handle(schema: Schema, context: Context) {
+        schema.protoFiles.forEach { protoFile ->
+            protoFile.services.forEach { typeResolver.add(it) }
+            val typesInFile = protoFile.types.fold(setOf<Type>()) { acc, type ->
+                acc.plus(elements = type.typesAndNestedTypes())
             }
+            typesInFile.forEach { typeResolver.add(it) }
+            unresolvedTypeManager.resolve(typesInFile)
+        }
+        super.handle(schema, context)
+    }
+    override fun handle(extend: Extend, field: Field, context: Context): Path? {
+        return null
+    }
 
-            override fun handle(service: Service): List<Path> {
-                writeClientInterface(service)
+    override fun handle(service: Service, context: Context): List<Path> {
+        writeClientInterface(service, context.outDirectory, context.fileSystem)
 
-                val staticImports = listOf(
-                    "import { plainToClass, serialize } from \"class-transformer\"",
-                    "import ServiceNetworkClient from \"./ServiceNetworkClient\"",
-                )
+        val staticImports = listOf(
+            "import { plainToClass, serialize } from \"class-transformer\"",
+            "import ServiceNetworkClient from \"./ServiceNetworkClient\"",
+        )
 
-                val types = service.requestAndResponseProtoTypes.map {
-                    // We rely on the fact that any referenced request/response types have already been parsed.
-                    // This will be true for any types declared in the same file, which is good enough for now.
-                    typeResolver.typeFor(it)!!
-                }
-                val imports = types.fold(staticImports) { acc, type ->
-                    acc.plus(toTypeScriptImports(type))
-                }.distinct().sorted()
+        val types = service.requestAndResponseProtoTypes.map {
+            // We rely on the fact that any referenced request/response types have already been parsed.
+            // This will be true for any types declared in the same file, which is good enough for now.
+            typeResolver.typeFor(it)!!
+        }
+        val imports = types.fold(staticImports) { acc, type ->
+            acc.plus(toTypeScriptImports(type))
+        }.distinct().sorted()
 
-                val typeContent = LinkedHashMap<Type, String>()
-                types.forEach { toTypeScriptTypes(it, false, typeResolver, typeContent) }
+        val typeContent = LinkedHashMap<Type, String>()
+        types.forEach { toTypeScriptTypes(it, false, typeResolver, typeContent) }
 
-                val serviceContent = TypeScriptServiceGenerator(service, typeResolver).generate()
+        val serviceContent = TypeScriptServiceGenerator(service, typeResolver).generate()
 
-                var content = ""
-                imports.forEach { content += it + "\n"}
-                content += "\n"
-                typeContent.forEach { content += it.value + "\n\n" }
-                content += serviceContent
+        var content = ""
+        imports.forEach { content += it + "\n"}
+        content += "\n"
+        typeContent.forEach { content += it.value + "\n\n" }
+        content += serviceContent
 
-                val path = writeFile(service.type, content)
-                types.forEach { unresolvedTypeManager.setPathForProtoType(path, it.type) }
+        val path = writeFile(service.type, content, context.outDirectory, context.fileSystem)
+        types.forEach { unresolvedTypeManager.setPathForProtoType(path, it.type) }
 
-                return listOf(path)
-            }
+        return listOf(path)
+    }
 
-            override fun handle(extend: Extend, field: Field): Path? {
-                return null
-            }
+    override fun handle(type: Type, context: Context): Path? {
+        // If this type is a request or response in a service then it will
+        // be included in the service's file.
+        if (typeResolver.rpcForRequestOrResponse(type.type) != null) {
+            return null
+        }
 
-            override fun handle(
-                protoFile: ProtoFile,
-                emittingRules: EmittingRules,
-                claimedDefinitions: ClaimedDefinitions,
-                claimedPaths: MutableMap<Path, String>,
-                isExclusive: Boolean
-            ) {
-                protoFile.services.forEach { typeResolver.add(it) }
-                val typesInFile = protoFile.types.fold(setOf<Type>()) { acc, type ->
-                    acc.plus(elements = type.typesAndNestedTypes())
-                }
-                typesInFile.forEach { typeResolver.add(it) }
-                unresolvedTypeManager.resolve(typesInFile)
+        val generated = toTypeScriptTypes(type, true, typeResolver)
 
-                super.handle(protoFile, emittingRules, claimedDefinitions, claimedPaths, isExclusive)
-            }
+        val imports = toTypeScriptImports(type)
 
-            private fun writeFile(protoType: ProtoType, content: String): Path {
-                val path = outDirectory.toPath() / toPath(protoType).joinToString("/")
-                unresolvedTypeManager.setPathForProtoType(path, protoType)
-                fs.createDirectories(path.parent!!)
-                fs.write(path) {
-                    writeUtf8(content)
-                }
-                return path
-            }
+        var content = ""
+        imports.forEach { content += it + "\n"}
+        content += "\n"
+        generated.forEach { content += it.value + "\n\n" }
+        return writeFile(type.type, content.trim() + "\n", context.outDirectory, context.fileSystem)
+    }
 
-            private fun writeClientInterface(service: Service) {
-                val parts = toPath(service.type).toMutableList()
-                parts[parts.size - 1] = "ServiceNetworkClient.ts"
+    private fun writeFile(protoType: ProtoType, content: String, outDirectory: Path, fileSystem: FileSystem): Path {
+        val path = outDirectory / toPath(protoType).joinToString("/")
+        unresolvedTypeManager.setPathForProtoType(path, protoType)
+        fileSystem.createDirectories(path.parent!!)
+        fileSystem.write(path) {
+            writeUtf8(content)
+        }
+        return path
+    }
 
-                val content = """
+    private fun writeClientInterface(service: Service, outDirectory: Path, fileSystem: FileSystem) {
+        val parts = toPath(service.type).toMutableList()
+        parts[parts.size - 1] = "ServiceNetworkClient.ts"
+
+        val content = """
                     // A network response.
                     // AxiosResponse fulfills the requirements of this interface.  
                     export interface ServiceNetworkResponse<T = any> {
@@ -128,12 +113,10 @@ class TypeScriptGenerator : CustomHandlerBeta {
                     }
                 """.trimIndent()
 
-                val path = outDirectory.toPath() / parts.joinToString("/")
-                fs.createDirectories(path.parent!!)
-                fs.write(path) {
-                    writeUtf8(content)
-                }
-            }
+        val path = outDirectory / parts.joinToString("/")
+        fileSystem.createDirectories(path.parent!!)
+        fileSystem.write(path) {
+            writeUtf8(content)
         }
     }
 
@@ -169,7 +152,7 @@ class TypeScriptGenerator : CustomHandlerBeta {
         // We only need to import the types not in this file.
         // Also filter out the built-in types as we'll use native TypeScript types for those.
         val typesOutsideFile = referencedTypes
-            .subtract(typesInFile)
+            .subtract(typesInFile.toSet())
             .filter { !it.toString().startsWith("google.protobuf") }
 
         val transformerImport = if (referencedTypes.isEmpty()) {
