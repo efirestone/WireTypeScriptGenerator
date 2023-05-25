@@ -79,6 +79,7 @@ private fun Type.Companion.createDummyMessageType(protoType: ProtoType): Type {
         extensionFields = mutableListOf(),
         oneOfs = listOf(),
         nestedTypes = listOf(),
+        nestedExtendList = listOf(),
         extensionsList = listOf(),
         reserveds = listOf(),
         options = Options(Options.MESSAGE_OPTIONS, listOf()),

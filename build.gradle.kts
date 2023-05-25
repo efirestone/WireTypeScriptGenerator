@@ -1,5 +1,5 @@
 val artifactGroup = "com.codellyrandom.wiretypescriptgenerator"
-val artifactVersion = "0.3.1"
+val artifactVersion = "0.4.0"
 
 group = artifactGroup
 version = artifactVersion
@@ -12,9 +12,9 @@ plugins {
 }
 
 dependencies {
-    implementation(kotlin("stdlib:1.7.10"))
-    implementation("com.squareup.wire:wire-compiler:4.4.1")
-    testImplementation(kotlin("test-junit:1.7.10"))
+    implementation(kotlin("stdlib:1.8.21"))
+    implementation("com.squareup.wire:wire-compiler:4.7.0")
+    testImplementation(kotlin("test-junit:1.8.21"))
 }
 
 repositories {
