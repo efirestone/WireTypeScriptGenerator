@@ -23,10 +23,10 @@ fun String.toKebabCase(): String {
 fun String.trimEmptyLines(): String {
     val lines = this.split("\n").toMutableList()
     while (lines.firstOrNull()?.isBlank() == true) {
-        lines.removeFirst()
+        lines.removeAt(0)
     }
     while (lines.lastOrNull()?.isBlank() == true) {
-        lines.removeLast()
+        lines.removeAt(lines.size - 1)
     }
     return lines.joinToString("\n")
 }
