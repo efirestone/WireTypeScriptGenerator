@@ -42,7 +42,7 @@ wire {
         customHandlerClass = "com.codellyrandom.wiretypescriptgenerator.TypeScriptGenerator"
 
         exclusive = true
-        out = "${buildDir}/custom"
+        out = "${layout.buildDirectory}/custom"
     }
 }
 ```
@@ -83,7 +83,7 @@ wire {
             "my.project.settings.*",
         )
         exclusive = true
-        out = "${buildDir}/custom"
+        out = "${layout.buildDirectory}/custom"
     }
 }
 ```

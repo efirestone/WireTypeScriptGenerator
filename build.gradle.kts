@@ -1,20 +1,20 @@
 val artifactGroup = "com.codellyrandom.wiretypescriptgenerator"
-val artifactVersion = "0.4.0"
+val artifactVersion = "0.5.0"
 
 group = artifactGroup
 version = artifactVersion
 
 plugins {
-    kotlin("jvm") version "1.7.10"
+    kotlin("jvm") version "2.0.20"
     id("java")
     id("maven-publish")
     id("signing")
 }
 
 dependencies {
-    implementation(kotlin("stdlib:1.8.21"))
-    implementation("com.squareup.wire:wire-compiler:4.7.0")
-    testImplementation(kotlin("test-junit:1.8.21"))
+    implementation(kotlin("stdlib:2.0.20"))
+    implementation("com.squareup.wire:wire-compiler:5.1.0")
+    testImplementation(kotlin("test-junit:1.9.25"))
 }
 
 repositories {
@@ -67,8 +67,8 @@ publishing {
             val snapshotsRepoUrl = uri("https://s01.oss.sonatype.org/content/repositories/snapshots")
             url = if (version.toString().endsWith("SNAPSHOT")) snapshotsRepoUrl else releasesRepoUrl
             credentials {
-                this.username = properties["nexusUsername"] as String
-                this.password = properties["nexusPassword"] as String
+                username = properties["nexusUsername"] as String
+                password = properties["nexusPassword"] as String
             }
         }
     }
